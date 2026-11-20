@@ -79,12 +79,12 @@
     });
   });
 
-  /* ---------- Quote form ---------- */
+  /* ---------- Quote Form (Direct WhatsApp Lead Submission) ---------- */
+  var WA_PHONE = "447774079152";
+
   var form = doc.querySelector("[data-quote-form]");
   if (form) {
     var status = form.querySelector("[data-form-status]");
-    var endpoint = (form.getAttribute("data-endpoint") || "").trim();
-    var isPlaceholder = !endpoint || endpoint.indexOf("YOUR_FORM_ID") !== -1;
 
     function showStatus(type, message) {
       if (!status) return;
@@ -104,14 +104,14 @@
         if (input.type === "checkbox") {
           invalid = !input.checked;
         } else if (input.type === "tel") {
-          invalid = value.replace(/[^\d]/g, "").length < 10;
-        } else if (input.type === "email") {
-          invalid = value !== "" && !/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(value);
+          invalid = value.replace(/[^\d]/g, "").length < 9;
         } else {
           invalid = value.length < 2;
         }
 
-        if (field) field.classList.toggle("has-error", invalid);
+        if (field) {
+          field.classList.toggle("has-error", invalid);
+        }
         if (invalid && !firstInvalid) firstInvalid = input;
       });
       if (firstInvalid) firstInvalid.focus();
@@ -128,7 +128,7 @@
     form.addEventListener("submit", function (e) {
       e.preventDefault();
       if (!validate()) {
-        showStatus("err", "Please check the highlighted fields and try again.");
+        showStatus("err", "Please fill in your details and accept consent.");
         return;
       }
 
@@ -139,47 +139,17 @@
       var service = String(data.get("service") || "").trim();
       var message = String(data.get("message") || "").trim();
 
-      var bodyText = [
-        "Name: " + name,
-        "Phone: " + phone,
-        "Postcode: " + postcode,
-        "Service: " + service,
-        "",
-        message
-      ].join("\r\n");
+      var msg = "Hi Just Imagine Heating, emergency quote request:";
+      if (name) msg += "\n- Name: " + name;
+      if (phone) msg += "\n- Phone: " + phone;
+      if (postcode) msg += "\n- Postcode: " + postcode;
+      if (service) msg += "\n- Service: " + service;
+      if (message) msg += "\n- Details: " + message;
 
-      var mailto = "mailto:justimagineheating@gmail.com"
-        + "?subject=" + encodeURIComponent("Website enquiry — " + (service || "heating & plumbing"))
-        + "&body=" + encodeURIComponent(bodyText);
+      showStatus("ok", "Opening WhatsApp with your quote details...");
 
-      if (isPlaceholder) {
-        showStatus("ok", "Opening your email app with the details ready to send. If nothing happens, call 07774 079 152 — that's the fastest way to reach us.");
-        window.location.href = mailto;
-        return;
-      }
-
-      var btn = form.querySelector("[type=submit]");
-      var btnText = btn ? btn.textContent : "";
-      if (btn) { btn.disabled = true; btn.textContent = "Sending…"; }
-      showStatus("ok", "Sending your request…");
-
-      fetch(endpoint, {
-        method: "POST",
-        headers: { Accept: "application/json" },
-        body: data
-      })
-        .then(function (res) {
-          if (!res.ok) throw new Error("Request failed");
-          form.reset();
-          showStatus("ok", "Thanks — your request is in. We'll call you back to confirm a time.");
-        })
-        .catch(function () {
-          showStatus("err", "That didn't send. Please call 07774 079 152 or email justimagineheating@gmail.com.");
-          window.location.href = mailto;
-        })
-        .finally(function () {
-          if (btn) { btn.disabled = false; btn.textContent = btnText; }
-        });
+      var waUrl = "https://wa.me/" + WA_PHONE + "?text=" + encodeURIComponent(msg);
+      window.open(waUrl, "_blank");
     });
   }
 
@@ -208,52 +178,39 @@
     el.textContent = String(new Date().getFullYear());
   });
 
-  /* ---------- WhatsApp Instant Lead Engine ---------- */
-  var WA_PHONE = "447774079152";
-
-  function buildWaText(customPostcode, customIssue, customDetails) {
-    var postcode = customPostcode || "CV22 Rugby";
-    var issue = customIssue || "Emergency Boiler Breakdown / Leaks";
-    var msg = "Hi Just Imagine Heating, emergency quote request:\n- Postcode: " + postcode + "\n- Issue: " + issue;
-    if (customDetails) {
-      msg += "\n- Details: " + customDetails;
-    }
-    return encodeURIComponent(msg);
+  /* ---------- Sleek Top Loading Bar ---------- */
+  var loader = doc.getElementById("pageLoader");
+  if (!loader) {
+    loader = doc.createElement("div");
+    loader.id = "pageLoader";
+    loader.innerHTML = '<div class="bar"></div>';
+    doc.body.insertBefore(loader, doc.body.firstChild);
   }
-
-  // Sync form inputs to WhatsApp link in real-time
-  var waFormLinks = [].slice.call(doc.querySelectorAll(".js-wa-sync"));
-  if (waFormLinks.length) {
-    var updateWaLinks = function () {
-      var name = (doc.getElementById("q-name") ? doc.getElementById("q-name").value : "").trim();
-      var pc = (doc.getElementById("q-postcode") ? doc.getElementById("q-postcode").value : "").trim() || "CV22 Rugby";
-      var srv = (doc.getElementById("q-service") ? doc.getElementById("q-service").value : "").trim() || "Boiler repair";
-      var detail = (doc.getElementById("q-message") ? doc.getElementById("q-message").value : "").trim();
-
-      var msg = "Hi Just Imagine Heating, emergency quote request:";
-      if (name) msg += "\n- Name: " + name;
-      msg += "\n- Postcode: " + pc + "\n- Issue: " + srv;
-      if (detail) msg += "\n- Details: " + detail;
-
-      var href = "https://wa.me/" + WA_PHONE + "?text=" + encodeURIComponent(msg);
-      waFormLinks.forEach(function (link) { link.href = href; });
-    };
-
-    var quoteForms = [].slice.call(doc.querySelectorAll("[data-quote-form]"));
-    quoteForms.forEach(function (f) {
-      ["input", "change"].forEach(function (ev) { f.addEventListener(ev, updateWaLinks); });
+  var loaderBar = loader.querySelector(".bar");
+  if (loaderBar) {
+    loaderBar.style.width = "65%";
+    window.addEventListener("load", function () {
+      loaderBar.style.width = "100%";
+      window.setTimeout(function () {
+        loader.classList.add("is-done");
+      }, 200);
     });
+    // Fallback in case load already fired
+    window.setTimeout(function () {
+      loaderBar.style.width = "100%";
+      loader.classList.add("is-done");
+    }, 400);
   }
 
-  // Inject global floating WhatsApp button if not present
+  /* ---------- Global Compact Floating WhatsApp Button ---------- */
   if (!doc.querySelector(".floating-whatsapp")) {
     var floatWa = doc.createElement("a");
     floatWa.className = "floating-whatsapp";
-    floatWa.href = "https://wa.me/" + WA_PHONE + "?text=" + buildWaText();
+    floatWa.href = "https://wa.me/" + WA_PHONE + "?text=" + encodeURIComponent("Hi Just Imagine Heating, emergency quote request:\n- Postcode: CV22 Rugby\n- Issue: Emergency Boiler Breakdown / Leaks");
     floatWa.target = "_blank";
     floatWa.rel = "noopener";
-    floatWa.setAttribute("aria-label", "WhatsApp Instant 10-Second Quote");
-    floatWa.innerHTML = '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.888 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413Z"/></svg><span>WhatsApp 10s Quote</span>';
+    floatWa.setAttribute("aria-label", "WhatsApp Instant Quote");
+    floatWa.innerHTML = '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.888 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413Z"/></svg><span>WhatsApp</span>';
     doc.body.appendChild(floatWa);
   }
 })();
