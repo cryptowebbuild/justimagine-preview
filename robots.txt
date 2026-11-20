@@ -1,0 +1,9 @@
+# robots.txt for justimagine.ltd
+User-agent: *
+Allow: /
+Disallow: /thanks.html
+Disallow: /404.html
+
+# No crawl-delay: the site is small and static.
+
+Sitemap: https://justimagine.ltd/sitemap.xml

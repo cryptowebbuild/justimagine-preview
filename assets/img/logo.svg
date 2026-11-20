@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" width="48" height="48" role="img" aria-label="Just Imagine Heating Ltd">
+  <defs>
+    <linearGradient id="flame" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#f5a93f"/>
+      <stop offset=".55" stop-color="#e8451c"/>
+      <stop offset="1" stop-color="#b8330f"/>
+    </linearGradient>
+  </defs>
+  <rect width="48" height="48" rx="14" fill="#12100e"/>
+  <path d="M24 9c4.4 5.6 9.6 9.4 9.6 15.9A9.6 9.6 0 0 1 14.4 25c0-4.6 2.3-7.4 4.9-10.6.3 3 1.6 4.9 3 6.1-.4-4.1.4-8 1.7-11.5Z" fill="url(#flame)"/>
+  <circle cx="32.4" cy="15.6" r="1.7" fill="#f0a33b"/>
+</svg>

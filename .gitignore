@@ -1,0 +1,7 @@
+# Build helpers and local scratch — not part of the deployed site
+_src/
+tools/
+__pycache__/
+*.pyc
+.DS_Store
+Thumbs.db

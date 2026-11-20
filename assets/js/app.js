@@ -1,0 +1,259 @@
+/* Just Imagine Heating — interaction layer (vanilla, no dependencies) */
+(function () {
+  "use strict";
+
+  var doc = document;
+  var reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+  /* ---------- Sticky header state ---------- */
+  var header = doc.getElementById("siteHeader");
+  if (header) {
+    var onScroll = function () {
+      header.classList.toggle("is-stuck", window.scrollY > 8);
+    };
+    onScroll();
+    window.addEventListener("scroll", onScroll, { passive: true });
+  }
+
+  /* ---------- Mobile menu ---------- */
+  var toggle = doc.querySelector(".nav-toggle");
+  var menu = doc.getElementById("mobileMenu");
+
+  function setMenu(open) {
+    if (!toggle || !menu) return;
+    toggle.setAttribute("aria-expanded", String(open));
+    toggle.setAttribute("aria-label", open ? "Close menu" : "Open menu");
+    doc.body.style.overflow = open ? "hidden" : "";
+    if (open) {
+      menu.hidden = false;
+      requestAnimationFrame(function () { menu.classList.add("is-open"); });
+    } else {
+      menu.classList.remove("is-open");
+      window.setTimeout(function () { menu.hidden = true; }, 260);
+    }
+  }
+
+  if (toggle && menu) {
+    toggle.addEventListener("click", function () {
+      setMenu(toggle.getAttribute("aria-expanded") !== "true");
+    });
+    menu.addEventListener("click", function (e) {
+      if (e.target.closest("a")) setMenu(false);
+    });
+    doc.addEventListener("keydown", function (e) {
+      if (e.key === "Escape") setMenu(false);
+    });
+    window.addEventListener("resize", function () {
+      if (window.innerWidth > 920 && toggle.getAttribute("aria-expanded") === "true") setMenu(false);
+    });
+  }
+
+  /* ---------- Reveal on scroll ---------- */
+  var revealables = [].slice.call(doc.querySelectorAll("[data-reveal]"));
+  if (revealables.length) {
+    if (reduceMotion || !("IntersectionObserver" in window)) {
+      revealables.forEach(function (el) { el.classList.add("is-in"); });
+    } else {
+      var io = new IntersectionObserver(function (entries) {
+        entries.forEach(function (entry) {
+          if (entry.isIntersecting) {
+            entry.target.classList.add("is-in");
+            io.unobserve(entry.target);
+          }
+        });
+      }, { rootMargin: "0px 0px -8% 0px", threshold: 0.08 });
+      revealables.forEach(function (el) { io.observe(el); });
+    }
+  }
+
+  /* ---------- Accordions: keep one open at a time per group ---------- */
+  [].slice.call(doc.querySelectorAll("[data-accordion]")).forEach(function (group) {
+    var items = [].slice.call(group.querySelectorAll("details"));
+    items.forEach(function (item) {
+      item.addEventListener("toggle", function () {
+        if (!item.open) return;
+        items.forEach(function (other) {
+          if (other !== item) other.open = false;
+        });
+      });
+    });
+  });
+
+  /* ---------- Quote form ---------- */
+  var form = doc.querySelector("[data-quote-form]");
+  if (form) {
+    var status = form.querySelector("[data-form-status]");
+    var endpoint = (form.getAttribute("data-endpoint") || "").trim();
+    var isPlaceholder = !endpoint || endpoint.indexOf("YOUR_FORM_ID") !== -1;
+
+    function showStatus(type, message) {
+      if (!status) return;
+      status.className = "form__status is-visible is-" + type;
+      status.textContent = message;
+    }
+
+    function fieldOf(input) { return input.closest(".field"); }
+
+    function validate() {
+      var firstInvalid = null;
+      [].slice.call(form.querySelectorAll("[required]")).forEach(function (input) {
+        var field = fieldOf(input);
+        var value = (input.value || "").trim();
+        var invalid = false;
+
+        if (input.type === "checkbox") {
+          invalid = !input.checked;
+        } else if (input.type === "tel") {
+          invalid = value.replace(/[^\d]/g, "").length < 10;
+        } else if (input.type === "email") {
+          invalid = value !== "" && !/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(value);
+        } else {
+          invalid = value.length < 2;
+        }
+
+        if (field) field.classList.toggle("has-error", invalid);
+        if (invalid && !firstInvalid) firstInvalid = input;
+      });
+      if (firstInvalid) firstInvalid.focus();
+      return !firstInvalid;
+    }
+
+    form.addEventListener("input", function (e) {
+      var field = fieldOf(e.target);
+      if (field && field.classList.contains("has-error")) {
+        field.classList.remove("has-error");
+      }
+    });
+
+    form.addEventListener("submit", function (e) {
+      e.preventDefault();
+      if (!validate()) {
+        showStatus("err", "Please check the highlighted fields and try again.");
+        return;
+      }
+
+      var data = new FormData(form);
+      var name = String(data.get("name") || "").trim();
+      var phone = String(data.get("phone") || "").trim();
+      var postcode = String(data.get("postcode") || "").trim();
+      var service = String(data.get("service") || "").trim();
+      var message = String(data.get("message") || "").trim();
+
+      var bodyText = [
+        "Name: " + name,
+        "Phone: " + phone,
+        "Postcode: " + postcode,
+        "Service: " + service,
+        "",
+        message
+      ].join("\r\n");
+
+      var mailto = "mailto:justimagineheating@gmail.com"
+        + "?subject=" + encodeURIComponent("Website enquiry — " + (service || "heating & plumbing"))
+        + "&body=" + encodeURIComponent(bodyText);
+
+      if (isPlaceholder) {
+        showStatus("ok", "Opening your email app with the details ready to send. If nothing happens, call 07774 079 152 — that's the fastest way to reach us.");
+        window.location.href = mailto;
+        return;
+      }
+
+      var btn = form.querySelector("[type=submit]");
+      var btnText = btn ? btn.textContent : "";
+      if (btn) { btn.disabled = true; btn.textContent = "Sending…"; }
+      showStatus("ok", "Sending your request…");
+
+      fetch(endpoint, {
+        method: "POST",
+        headers: { Accept: "application/json" },
+        body: data
+      })
+        .then(function (res) {
+          if (!res.ok) throw new Error("Request failed");
+          form.reset();
+          showStatus("ok", "Thanks — your request is in. We'll call you back to confirm a time.");
+        })
+        .catch(function () {
+          showStatus("err", "That didn't send. Please call 07774 079 152 or email justimagineheating@gmail.com.");
+          window.location.href = mailto;
+        })
+        .finally(function () {
+          if (btn) { btn.disabled = false; btn.textContent = btnText; }
+        });
+    });
+  }
+
+  /* ---------- Cookie / storage notice ---------- */
+  var notice = doc.getElementById("cookieNotice");
+  var STORAGE_KEY = "jih-consent";
+  if (notice) {
+    var stored = null;
+    try { stored = window.localStorage.getItem(STORAGE_KEY); } catch (err) { stored = null; }
+    if (!stored) {
+      window.setTimeout(function () { notice.classList.add("is-visible"); }, 1200);
+    }
+    notice.addEventListener("click", function (e) {
+      var choice = e.target.getAttribute("data-consent");
+      if (!choice) return;
+      try { window.localStorage.setItem(STORAGE_KEY, choice); } catch (err) { /* storage blocked */ }
+      notice.classList.remove("is-visible");
+      if (choice === "accepted" && typeof window.loadAnalytics === "function") {
+        window.loadAnalytics();
+      }
+    });
+  }
+
+  /* ---------- Current year ---------- */
+  [].slice.call(doc.querySelectorAll("[data-year]")).forEach(function (el) {
+    el.textContent = String(new Date().getFullYear());
+  });
+
+  /* ---------- WhatsApp Instant Lead Engine ---------- */
+  var WA_PHONE = "447774079152";
+
+  function buildWaText(customPostcode, customIssue, customDetails) {
+    var postcode = customPostcode || "CV22 Rugby";
+    var issue = customIssue || "Emergency Boiler Breakdown / Leaks";
+    var msg = "Hi Just Imagine Heating, emergency quote request:\n- Postcode: " + postcode + "\n- Issue: " + issue;
+    if (customDetails) {
+      msg += "\n- Details: " + customDetails;
+    }
+    return encodeURIComponent(msg);
+  }
+
+  // Sync form inputs to WhatsApp link in real-time
+  var waFormLinks = [].slice.call(doc.querySelectorAll(".js-wa-sync"));
+  if (waFormLinks.length) {
+    var updateWaLinks = function () {
+      var name = (doc.getElementById("q-name") ? doc.getElementById("q-name").value : "").trim();
+      var pc = (doc.getElementById("q-postcode") ? doc.getElementById("q-postcode").value : "").trim() || "CV22 Rugby";
+      var srv = (doc.getElementById("q-service") ? doc.getElementById("q-service").value : "").trim() || "Boiler repair";
+      var detail = (doc.getElementById("q-message") ? doc.getElementById("q-message").value : "").trim();
+
+      var msg = "Hi Just Imagine Heating, emergency quote request:";
+      if (name) msg += "\n- Name: " + name;
+      msg += "\n- Postcode: " + pc + "\n- Issue: " + srv;
+      if (detail) msg += "\n- Details: " + detail;
+
+      var href = "https://wa.me/" + WA_PHONE + "?text=" + encodeURIComponent(msg);
+      waFormLinks.forEach(function (link) { link.href = href; });
+    };
+
+    var quoteForms = [].slice.call(doc.querySelectorAll("[data-quote-form]"));
+    quoteForms.forEach(function (f) {
+      ["input", "change"].forEach(function (ev) { f.addEventListener(ev, updateWaLinks); });
+    });
+  }
+
+  // Inject global floating WhatsApp button if not present
+  if (!doc.querySelector(".floating-whatsapp")) {
+    var floatWa = doc.createElement("a");
+    floatWa.className = "floating-whatsapp";
+    floatWa.href = "https://wa.me/" + WA_PHONE + "?text=" + buildWaText();
+    floatWa.target = "_blank";
+    floatWa.rel = "noopener";
+    floatWa.setAttribute("aria-label", "WhatsApp Instant 10-Second Quote");
+    floatWa.innerHTML = '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.888 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413Z"/></svg><span>WhatsApp 10s Quote</span>';
+    doc.body.appendChild(floatWa);
+  }
+})();

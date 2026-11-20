@@ -1,0 +1,24 @@
+{
+  "name": "Just Imagine Heating Ltd",
+  "short_name": "Just Imagine",
+  "description": "Gas Safe registered heating and plumbing engineers in Rugby, covering Warwickshire.",
+  "start_url": ".",
+  "scope": ".",
+  "display": "standalone",
+  "background_color": "#fbf8f4",
+  "theme_color": "#12100e",
+  "lang": "en-GB",
+  "icons": [
+    {
+      "src": "assets/img/favicon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    },
+    {
+      "src": "assets/img/apple-touch-icon.png",
+      "sizes": "180x180",
+      "type": "image/png"
+    }
+  ]
+}
