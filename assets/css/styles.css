@@ -451,7 +451,7 @@ p:last-child { margin-bottom: 0; }
   inset: 0;
   z-index: 80;
   background: var(--paper);
-  padding: 6.5rem var(--gutter) 2rem;
+  padding: 8rem var(--gutter) 2.5rem;
   overflow-y: auto;
   opacity: 0;
   transform: translateY(-8px);
@@ -1019,7 +1019,7 @@ p:last-child { margin-bottom: 0; }
 }
 .contact-line__icon svg { width: 19px; height: 19px; }
 .contact-line small { display: block; font-size: .72rem; text-transform: uppercase; letter-spacing: .12em; color: var(--muted); font-weight: 700; }
-.contact-line strong { display: block; font-size: 1rem; color: var(--ink); letter-spacing: -.01em; }
+.contact-line strong { display: block; font-size: .95rem; color: var(--ink); letter-spacing: -.01em; word-break: break-word; overflow-wrap: anywhere; }
 
 /* ---------- 14. Inner page hero ---------- */
 .page-hero {
@@ -1386,7 +1386,7 @@ p:last-child { margin-bottom: 0; }
   .faq__answer { padding-right: 0; }
   .float-card { max-width: 15rem; padding: .75rem .9rem; }
   .float-card__icon { width: 36px; height: 36px; }
-  .mobile-menu { padding-top: 5.5rem; }
+  .mobile-menu { padding-top: 7.5rem; }
   .media-frame { aspect-ratio: 4 / 4.2; border-radius: var(--radius-l); }
   .cta-band { border-radius: var(--radius-l); }
   .topbar__inner { font-size: .7rem; }
@@ -1599,5 +1599,160 @@ html, body {
   }
   .btn-row .btn {
     width: 100%;
+  }
+}
+
+/* =====================================================================
+   Mobile Precision Fixes: Get in touch, Mobile Menu, Floating WhatsApp
+   ===================================================================== */
+/* 1. Prevent any element from overflowing viewport */
+*, *::before, *::after {
+  box-sizing: border-box;
+}
+
+#quote {
+  width: 100%;
+  max-width: 100vw;
+  overflow: hidden;
+}
+
+.form-aside {
+  width: 100%;
+  max-width: 100%;
+}
+
+.contact-line {
+  max-width: 100%;
+  min-width: 0;
+}
+
+.contact-line > div {
+  min-width: 0;
+  flex: 1;
+}
+
+.form-card {
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  overflow: hidden;
+}
+
+.form {
+  width: 100%;
+  max-width: 100%;
+}
+
+.field input, .field select, .field textarea {
+  max-width: 100%;
+}
+
+/* 2. Hero CTA Group (Balanced 2-button layout) */
+.hero__cta-group {
+  display: flex;
+  flex-wrap: wrap;
+  gap: .85rem;
+  align-items: center;
+}
+
+.hero__sub-link {
+  display: inline-block;
+  margin-top: .75rem;
+  font-size: .85rem;
+  font-weight: 600;
+  color: var(--muted);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  transition: color var(--t-fast) var(--ease);
+}
+.hero__sub-link:hover {
+  color: var(--flame-ink);
+}
+
+/* 3. Floating WhatsApp: Sleek & Smart auto-hide */
+.floating-whatsapp {
+  position: fixed;
+  bottom: 22px;
+  right: 20px;
+  z-index: 999;
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  background: linear-gradient(180deg, #25D366 0%, #1EBE5D 100%);
+  color: #ffffff !important;
+  padding: 9px 16px;
+  border-radius: 999px;
+  font-family: var(--font-body);
+  font-weight: 700;
+  font-size: .8125rem;
+  letter-spacing: -.01em;
+  text-decoration: none !important;
+  box-shadow: 0 4px 16px -2px rgba(37, 211, 102, .45), 0 2px 6px rgba(18, 16, 14, .08);
+  transition: opacity 0.25s ease, transform 0.25s cubic-bezier(.22, .61, .36, 1), box-shadow 0.2s ease;
+  animation: wa-pulse 3.5s infinite;
+}
+.floating-whatsapp:hover {
+  transform: translateY(-2px) scale(1.02);
+  box-shadow: 0 8px 22px -2px rgba(37, 211, 102, .65);
+}
+.floating-whatsapp.is-hidden {
+  opacity: 0;
+  pointer-events: none;
+  transform: translateY(16px) scale(0.9);
+}
+.floating-whatsapp svg {
+  width: 17px;
+  height: 17px;
+  fill: #fff;
+  flex: none;
+}
+
+@media (max-width: 640px) {
+  .hero__cta-group {
+    flex-direction: column;
+    width: 100%;
+  }
+  .hero__cta-group .btn {
+    width: 100%;
+  }
+  .form-card {
+    padding: 1.25rem 1rem !important;
+    border-radius: var(--radius-l) !important;
+  }
+  .contact-line {
+    padding: .85rem .9rem;
+    gap: .75rem;
+  }
+  .contact-line strong {
+    font-size: .875rem !important;
+  }
+  .contact-line__icon {
+    width: 38px;
+    height: 38px;
+  }
+  .floating-whatsapp {
+    bottom: 16px;
+    right: 16px;
+    width: 46px;
+    height: 46px;
+    padding: 0;
+    justify-content: center;
+    border-radius: 50%;
+  }
+  .floating-whatsapp span {
+    display: none !important;
+  }
+  .floating-whatsapp svg {
+    width: 22px;
+    height: 22px;
+  }
+  .mobile-menu {
+    padding-top: 7.75rem !important;
+    padding-left: 1.5rem !important;
+    padding-right: 1.5rem !important;
+  }
+  .mobile-menu__list a {
+    font-size: 1.25rem !important;
+    padding: .8rem 0 !important;
   }
 }
