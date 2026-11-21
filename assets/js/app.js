@@ -139,16 +139,16 @@
       var service = String(data.get("service") || "").trim();
       var message = String(data.get("message") || "").trim();
 
-      var msg = "Hi Just Imagine Heating, emergency quote request:";
-      if (name) msg += "\n- Name: " + name;
-      if (phone) msg += "\n- Phone: " + phone;
-      if (postcode) msg += "\n- Postcode: " + postcode;
-      if (service) msg += "\n- Service: " + service;
-      if (message) msg += "\n- Details: " + message;
+      var quoteMsg = "Hello Just Imagine Heating, here is my quote enquiry from your website:\n";
+      quoteMsg += "• Name: " + name + "\n";
+      quoteMsg += "• Phone: " + phone + "\n";
+      quoteMsg += "• Postcode: " + postcode;
+      if (service) quoteMsg += "\n• Service: " + service;
+      if (message) quoteMsg += "\n• Details: " + message;
 
       showStatus("ok", "Opening WhatsApp with your quote details...");
 
-      var waUrl = "https://wa.me/" + WA_PHONE + "?text=" + encodeURIComponent(msg);
+      var waUrl = "https://wa.me/" + WA_PHONE + "?text=" + encodeURIComponent(quoteMsg);
       window.open(waUrl, "_blank");
     });
   }
@@ -203,10 +203,11 @@
   }
 
   /* ---------- Global Compact Floating WhatsApp Button ---------- */
+  var WA_DIRECT_MSG = "Hello Just Imagine Heating, I would like to get a quote / enquire about your heating and plumbing services.";
   if (!doc.querySelector(".floating-whatsapp")) {
     var floatWa = doc.createElement("a");
     floatWa.className = "floating-whatsapp";
-    floatWa.href = "https://wa.me/" + WA_PHONE + "?text=" + encodeURIComponent("Hi Just Imagine Heating, emergency quote request:\n- Postcode: CV22 Rugby\n- Issue: Emergency Boiler Breakdown / Leaks");
+    floatWa.href = "https://wa.me/" + WA_PHONE + "?text=" + encodeURIComponent(WA_DIRECT_MSG);
     floatWa.target = "_blank";
     floatWa.rel = "noopener";
     floatWa.setAttribute("aria-label", "WhatsApp Instant Quote");
