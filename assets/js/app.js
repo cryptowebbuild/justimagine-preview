@@ -125,6 +125,13 @@
       }
     });
 
+    form.addEventListener("change", function (e) {
+      var field = fieldOf(e.target);
+      if (field && field.classList.contains("has-error")) {
+        field.classList.remove("has-error");
+      }
+    });
+
     form.addEventListener("submit", function (e) {
       e.preventDefault();
       if (!validate()) {
@@ -178,29 +185,7 @@
     el.textContent = String(new Date().getFullYear());
   });
 
-  /* ---------- Sleek Top Loading Bar ---------- */
-  var loader = doc.getElementById("pageLoader");
-  if (!loader) {
-    loader = doc.createElement("div");
-    loader.id = "pageLoader";
-    loader.innerHTML = '<div class="bar"></div>';
-    doc.body.insertBefore(loader, doc.body.firstChild);
-  }
-  var loaderBar = loader.querySelector(".bar");
-  if (loaderBar) {
-    loaderBar.style.width = "65%";
-    window.addEventListener("load", function () {
-      loaderBar.style.width = "100%";
-      window.setTimeout(function () {
-        loader.classList.add("is-done");
-      }, 200);
-    });
-    // Fallback in case load already fired
-    window.setTimeout(function () {
-      loaderBar.style.width = "100%";
-      loader.classList.add("is-done");
-    }, 400);
-  }
+
 
   /* ---------- Global Compact Floating WhatsApp Button ---------- */
   var WA_DIRECT_MSG = "Hello Just Imagine Heating, I would like to get a quote / enquire about your heating and plumbing services.";
@@ -228,5 +213,22 @@
     }, { threshold: 0.15 });
     quoteObserver.observe(quoteSection);
   }
+
+  /* ---------- Smooth Scroll to Quote Form ---------- */
+  doc.addEventListener("click", function (e) {
+    var trigger = e.target.closest("[data-scroll-quote], a[href='#quote']");
+    if (!trigger) return;
+    var target = doc.getElementById("quote") || doc.querySelector("[data-quote-form]");
+    if (target) {
+      e.preventDefault();
+      target.scrollIntoView({ behavior: "smooth", block: "start" });
+      var firstInput = target.querySelector("input:not([type='hidden']), select, textarea");
+      if (firstInput) {
+        window.setTimeout(function () {
+          try { firstInput.focus({ preventScroll: true }); } catch (err) {}
+        }, 450);
+      }
+    }
+  });
 
 })();

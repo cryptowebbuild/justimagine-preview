@@ -942,7 +942,7 @@ p:last-child { margin-bottom: 0; }
   color: var(--ink);
 }
 .field .req { color: var(--flame-ink); }
-.field input, .field select, .field textarea {
+.field input:not([type="checkbox"]):not([type="radio"]), .field select, .field textarea {
   width: 100%;
   padding: .8rem .95rem;
   min-height: 50px;
@@ -961,28 +961,64 @@ p:last-child { margin-bottom: 0; }
   padding-right: 2.5rem;
 }
 .field textarea { min-height: 110px; resize: vertical; }
-.field input::placeholder, .field textarea::placeholder { color: #a29889; }
-.field input:focus, .field select:focus, .field textarea:focus {
+.field input:not([type="checkbox"]):not([type="radio"])::placeholder, .field textarea::placeholder { color: #a29889; }
+.field input:not([type="checkbox"]):not([type="radio"]):focus, .field select:focus, .field textarea:focus {
   outline: none;
   border-color: var(--flame);
   box-shadow: 0 0 0 4px rgba(232, 69, 28, .13);
 }
-.field.has-error input, .field.has-error select, .field.has-error textarea { border-color: #c02626; box-shadow: 0 0 0 4px rgba(192, 38, 38, .1); }
+.field.has-error input:not([type="checkbox"]):not([type="radio"]), .field.has-error select, .field.has-error textarea { border-color: #c02626; box-shadow: 0 0 0 4px rgba(192, 38, 38, .1); }
 .field__error { font-size: .75rem; color: #a81f1f; font-weight: 600; display: none; }
 .field.has-error .field__error { display: block; }
-.field--check { gap: .3rem; }
-.field--check.has-error .check span { color: #a81f1f; font-weight: 600; }
+.field--check {
+  display: block;
+  margin-top: .2rem;
+  margin-bottom: .2rem;
+  padding: 0;
+}
+.field--check.has-error .check span { color: #c02626 !important; font-weight: 600; }
+.field--check.has-error .field__error { display: block; margin-top: .35rem; }
 .form__row { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
 
 .check {
   display: flex;
+  flex-direction: row;
   align-items: flex-start;
-  gap: .6rem;
-  font-size: .78rem;
-  line-height: 1.5;
-  color: var(--muted);
+  gap: .75rem;
+  font-size: .8125rem;
+  line-height: 1.45;
+  color: var(--body);
+  cursor: pointer;
+  user-select: none;
+  margin: 0;
+  padding: 0;
 }
-.check input { width: 18px; height: 18px; margin-top: .15rem; accent-color: var(--flame-strong); flex: none; }
+.check input[type="checkbox"] {
+  appearance: auto !important;
+  -webkit-appearance: checkbox !important;
+  -moz-appearance: checkbox !important;
+  width: 20px !important;
+  min-width: 20px !important;
+  max-width: 20px !important;
+  height: 20px !important;
+  min-height: 20px !important;
+  max-height: 20px !important;
+  margin: 2px 0 0 0 !important;
+  padding: 0 !important;
+  background: #ffffff !important;
+  border: 1.5px solid var(--line-strong) !important;
+  border-radius: 4px !important;
+  accent-color: #25D366 !important;
+  cursor: pointer !important;
+  flex: 0 0 20px !important;
+}
+.check span {
+  flex: 1 1 auto;
+  cursor: pointer;
+  font-size: .8125rem;
+  line-height: 1.45;
+  color: var(--body);
+}
 
 .form__note { font-size: .75rem; color: var(--muted); margin: 0; }
 .form__status {
@@ -1461,28 +1497,7 @@ html, body {
   max-width: 100%;
 }
 
-/* Page loading top bar */
-#pageLoader {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 3px;
-  z-index: 100000;
-  pointer-events: none;
-  background: transparent;
-}
-#pageLoader .bar {
-  width: 0%;
-  height: 100%;
-  background: linear-gradient(90deg, #e8451c 0%, #f0a33b 50%, #25D366 100%);
-  box-shadow: 0 0 10px rgba(37, 211, 102, 0.7);
-  transition: width 0.3s cubic-bezier(.22, .61, .36, 1), opacity 0.25s ease;
-}
-#pageLoader.is-done .bar {
-  width: 100%;
-  opacity: 0;
-}
+
 
 .btn--whatsapp {
   --btn-bg: linear-gradient(180deg, #25D366 0%, #1EBE5D 100%);
@@ -1662,7 +1677,7 @@ html, body {
   max-width: 100%;
 }
 
-.field input, .field select, .field textarea {
+.field input:not([type="checkbox"]):not([type="radio"]), .field select, .field textarea {
   max-width: 100%;
 }
 
@@ -1725,11 +1740,17 @@ html, body {
   box-shadow: 0 4px 12px rgba(216, 56, 15, .35);
 }
 
-.mobile-bar .btn--whatsapp {
-  background: linear-gradient(180deg, #25D366 0%, #1EBE5D 100%);
-  color: #fff;
-  border: 0;
-  box-shadow: 0 4px 12px rgba(37, 211, 102, .4);
+.mobile-bar .btn--quote-bar {
+  background: #ffffff;
+  color: var(--ink);
+  border: 1.5px solid var(--line-strong);
+  box-shadow: 0 2px 8px rgba(18, 16, 14, .06);
+  transition: all var(--t-fast) var(--ease);
+}
+.mobile-bar .btn--quote-bar:hover,
+.mobile-bar .btn--quote-bar:active {
+  background: var(--cream);
+  border-color: #25D366;
 }
 
 .mobile-bar .btn svg {
@@ -1907,22 +1928,74 @@ html, body {
     box-sizing: border-box !important;
   }
 
-  .field input, .field select, .field textarea {
+  .field input:not([type="checkbox"]):not([type="radio"]), .field select, .field textarea {
     width: 100% !important;
     max-width: 100% !important;
     font-size: 16px !important; /* Prevents auto-zoom on iOS Safari */
     box-sizing: border-box !important;
   }
 
+  .field--check {
+    width: 100% !important;
+    margin-top: .25rem !important;
+    margin-bottom: .25rem !important;
+    padding: 0 !important;
+  }
+
   .check {
+    display: flex !important;
+    flex-direction: row !important;
+    align-items: flex-start !important;
+    gap: .75rem !important;
     width: 100% !important;
     max-width: 100% !important;
+    cursor: pointer !important;
+  }
+  .check input[type="checkbox"] {
+    appearance: auto !important;
+    -webkit-appearance: checkbox !important;
+    -moz-appearance: checkbox !important;
+    width: 20px !important;
+    min-width: 20px !important;
+    max-width: 20px !important;
+    height: 20px !important;
+    min-height: 20px !important;
+    max-height: 20px !important;
+    margin: 2px 0 0 0 !important;
+    padding: 0 !important;
+    border: 1.5px solid var(--line-strong) !important;
+    border-radius: 4px !important;
+    background: #ffffff !important;
+    accent-color: #25D366 !important;
+    flex: 0 0 20px !important;
   }
   .check span {
     min-width: 0 !important;
     flex: 1 1 0% !important;
     word-break: break-word !important;
     overflow-wrap: anywhere !important;
+    font-size: .8125rem !important;
+    line-height: 1.45 !important;
+    color: var(--body) !important;
+  }
+
+  .section {
+    padding-block: 2.25rem !important;
+  }
+  .section--tight {
+    padding-block: 1.5rem !important;
+  }
+  .section--flush-top {
+    padding-top: 0 !important;
+  }
+  .section--flush-bottom {
+    padding-bottom: 0 !important;
+  }
+  .form {
+    gap: .85rem !important;
+  }
+  .mobile-menu {
+    padding-top: 8.5rem !important;
   }
 
   #btnSubmitWa {
